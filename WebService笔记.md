@@ -194,6 +194,186 @@ WebService作为Web跨平台访问的标准技术，很多公司都限定要求�
 
 
 
-## 二、ApacheCXF框架
+## 二、Apache CXF框架
 
-https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=7
+### 1、关于Apache CXF
+
+![关于ApacheCXF](./images/关于ApacheCXF.png)
+
+
+
+### 2、WebService实现（JAX-WS）
+
+#### 服务端
+
+**1.创建项目**
+
+<span style="color:blue;">①创建一个空项目</span>
+
+![创建一个空项目](./images/创建一个空项目.png)
+
+<span style="color:blue;">②添加服务端Module</span>
+
+![创建服务端Module](./images/创建服务端Module.png)
+
+
+
+**2.添加CXF依赖**
+
+<span style="color:blue;">①在服务端Module中添加Apache CXF的依赖</span>
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.stone</groupId>
+  <artifactId>jax-ws_server</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>jax-ws_server</name>
+
+  <dependencies>
+    <!--要进行JAX-WS服务开发-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>3.5.7</version>
+    </dependency>
+    <!--内置jetty web服务器（若整合在一个Web项目中，项目自带Tomcat则不需要此依赖）-->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http-jetty</artifactId>
+      <version>3.5.7</version>
+    </dependency>
+    <!--日志实现-->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>2.0.7</version>
+    </dependency>
+    <!--junit-->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.13.0</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <encoding>UTF-8</encoding>
+            <showWarnings>true</showWarnings>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+</project>
+```
+
+
+
+**3.编写服务接口**
+
+<span style="color:blue;">①新建接口 `com.stone.service.HelloService`</span>
+
+```java
+package com.stone.service;
+
+import javax.jws.WebService;
+
+/**
+ * 对外发布服务的接口
+ */
+@WebService
+public interface HelloService {
+
+    /**
+     * 对外发布服务的接口的方法
+     */
+    String sayHello(String name);
+}
+```
+
+
+
+**4.编写服务接口的实现**
+
+<span style="color:blue;">①新建实现类 `com.stone.service.impl.HelloServiceImpl`</span>
+
+```java
+package com.stone.service.impl;
+
+import com.stone.service.HelloService;
+
+public class HelloServiceImpl implements HelloService {
+
+    @Override
+    public String sayHello(String name) {
+        return "Hello " + name + ", welcome to server!";
+    }
+}
+```
+
+
+
+**5.发布服务**
+
+<span style="color:blue;">①编写一个测试类 `com.stone.ServerTest`，来测试发布服务</span>
+
+```java
+package com.stone;
+
+import com.stone.service.impl.HelloServiceImpl;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+
+/**
+ * 发布服务的测试类
+ */
+public class ServerTest {
+
+    public static void main(String[] args) {
+        // 发布服务的工厂实例
+        JaxWsServerFactoryBean factory = new JaxWsServerFactoryBean();
+        // 配置服务地址
+        factory.setAddress("http://localhost:12301/ws/hello");
+        // 配置服务类
+        factory.setServiceBean(new HelloServiceImpl());
+        // 发布服务
+        factory.create();
+
+        System.out.println("发布服务成功，端口12301……");
+    }
+}
+```
+
+<span style="color:blue;">②执行测试类中的方法，查看运行结果</span>
+
+![服务端发布服务测试结果](./images/服务端发布服务测试结果.png)
+
+
+
+**6.访问wsdl说明书**
+
+<span style="color:blue;">wsdl说明书访问地址：</span>http://localhost:12301/ws/hello?wsdl
+
+<span style="color:red;">wsdl说明书的阅读顺序是从底部向顶部的</span>
+
+![wsdl说明书](./images/wsdl说明书.png)
+
+
+
+#### 客户端
+
+https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=9
