@@ -208,7 +208,7 @@ WebService作为Web跨平台访问的标准技术，很多公司都限定要求�
 
 **1.创建项目**
 
-<span style="color:blue;">①创建一个空项目</span>
+<span style="color:blue;">①创建一个空项目工程</span>
 
 ![创建一个空项目](./images/创建一个空项目.png)
 
@@ -376,4 +376,290 @@ public class ServerTest {
 
 #### 客户端
 
-https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=9
+**1.创建项目**
+
+<span style="color:blue;">①添加客户端Module</span>
+
+![创建客户端Module](./images/创建客户端Module.png)
+
+
+
+**2.添加CXF依赖**
+
+<span style="color:blue;">添加的依赖和服务端是一样的。</span>
+
+
+
+**3.编写服务接口**
+
+<span style="color:blue;">与服务端一样，新建一个接口 `com.stone.service.HelloService`</span>
+
+
+
+**4.调用服务**
+
+<span style="color:blue;">①编写一个测试类 `com.stone.ClientTest`，来测试服务调用</span>
+
+```java
+package com.stone;
+
+import com.stone.service.HelloService;
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+
+/**
+ * 调用服务的测试类
+ */
+public class ClientTest {
+
+    public static void main(String[] args) {
+        // 创建cxf代理工厂
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        // 配置服务接口访问地址：http://localhost:12301/ws/hello
+        factory.setAddress("http://localhost:12301/ws/hello");
+        // 配置接口类型（服务的接口规范）
+        factory.setServiceClass(HelloService.class);
+        // 对接口生成代理对象
+        HelloService helloService = factory.create(HelloService.class);
+        // 可以查看下代理对象
+        // Java中的代理分为：
+        // 1.静态代理
+        // 2.动态代理（jdk接口代理 $Proxy***、cglib子类代理 $CGLIB***）
+        System.out.println(helloService.getClass());
+        // 远程调用服务端方法
+        String result = helloService.sayHello("Stone");
+        System.out.println("调用服务接口：" + result);
+    }
+}
+```
+
+<span style="color:blue;">②执行测试类中的方法，查看运行结果</span>
+
+![客户端调用服务测试结果](./images/客户端调用服务测试结果.png)
+
+
+
+#### 观察SOAP请求&响应内容格式
+
+<span style="color:green;">通过添加ApacheCXF日志拦截器观察 SOAP 请求、响应的内容格式</span>
+
+①首先在服务端添加资源目录，并添加文件`log4j.properties`
+
+```properties
+log4j.rootCategory=INFO, CONSOLE, LOGFILE
+log4j.logger.org.apache.axis.enterprise=FATAL, CONSOLE
+log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} %-6r[%15.15t]%5p %30.30c %x - %m%n
+log4j.appender.LOGFILE=org.apache.log4j.FileAppender
+log4j.appender.LOGFILE.File=/tmp/axis.log
+log4j.appender.LOGFILE.Append=true
+log4j.appender.LOGFILE.layout=org.apache.log4j.PatternLayout
+```
+
+
+
+②修改服务端测试代码，添加日志拦截器
+
+```java
+package com.stone;
+
+import com.stone.service.impl.HelloServiceImpl;
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
+import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+
+/**
+ * 发布服务的测试类
+ */
+public class ServerTest {
+
+    public static void main(String[] args) {
+        // 发布服务的工厂实例
+        JaxWsServerFactoryBean factory = new JaxWsServerFactoryBean();
+        // 配置服务地址
+        factory.setAddress("http://localhost:12301/ws/hello");
+        // 配置服务类
+        factory.setServiceBean(new HelloServiceImpl());
+
+        // 添加日志输入、输出拦截器，观察 SOAP请求、SOAP响应内容
+        factory.getInInterceptors().add(new LoggingInInterceptor());
+        factory.getOutInterceptors().add(new LoggingOutInterceptor());
+
+        // 发布服务
+        factory.create();
+
+        System.out.println("发布服务成功，端口12301……");
+    }
+}
+```
+
+
+
+③重新发布并调用服务后，查看服务端的控制台日志打印
+
+![SOAP请求&响应内容](./images/SOAP请求&响应内容.png)
+
+
+
+## 三、Spring整合ApacheCXF
+
+<b style="color:red;">Target：基于JAX-WS规范，通过Spring整合ApacheCXF，实现WebService</b>
+
+### 服务端
+
+#### 1.创建Web项目
+
+<span style="color:blue;">①在之前的项目工程下创建一个**Web**的新Module，作为服务端项目</span>
+
+![创建Spring整合的服务端Module](./images/创建Spring整合的服务端Module.png)
+
+
+
+#### 2.添加依赖
+
+<span style="color:blue;">①添加Spring及ApacheCXF的相关依赖</span>
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.stone</groupId>
+    <artifactId>jax-ws_server_spring</artifactId>
+    <packaging>war</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>jax-ws_server_spring Maven Webapp</name>
+
+    <dependencies>
+        <!--CXF WS开发-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--junit-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!--Spring相关依赖-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--编译插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>utf-8</encoding>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+            <!--Tomcat插件-->
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <!--指定端口-->
+                    <port>8091</port>
+                    <!--请求路径-->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+
+
+#### 3.配置CXF Servlet
+
+<span style="color:blue;">①在web.xml文件中配置CXF Servlet</span>
+
+```xml
+<!DOCTYPE web-app PUBLIC
+        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+    <display-name>Archetype Created Web Application</display-name>
+
+    <!--2.Spring容器配置-->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!--1.cxf servlet配置-->
+    <servlet>
+        <servlet-name>cxfServlet</servlet-name>
+        <servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>cxfServlet</servlet-name>
+        <url-pattern>/ws/*</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+
+
+<span style="color:blue;">②新建根目录文件夹及Spring配置文件 applicationContext.xml</span>
+
+![新建Spring配置文件及项目根目录](./images/新建Spring配置文件及项目根目录.png)
+
+applicationContext.xml文件内容如下：
+
+```xml
+```
+
+
+
+#### 4.服务接口&实现
+
+https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=11
+
+
+
+#### 5.Spring整合ApacheCXF
+
+
+
+#### 6.启动服务，发布服务
+
+
+
+#### 7.访问wsdl说明书
+
+
+
+### 客户端
+
+
+
+### END

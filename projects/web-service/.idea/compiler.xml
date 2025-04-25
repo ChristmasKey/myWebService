@@ -6,6 +6,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="jax-ws_client" />
+        <module name="jax-ws_server_spring" />
         <module name="jax-ws_server" />
       </profile>
     </annotationProcessing>

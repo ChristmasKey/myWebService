@@ -5,6 +5,8 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/jax-ws_server/pom.xml" />
+        <option value="$PROJECT_DIR$/jax-ws_client/pom.xml" />
+        <option value="$PROJECT_DIR$/jax-ws_server_spring/pom.xml" />
       </list>
     </option>
   </component>

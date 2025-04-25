@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.stone</groupId>
-    <artifactId>jax-ws_server</artifactId>
+    <artifactId>jax-ws_client</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>jax-ws_server</name>
+    <name>jax-ws_client</name>
 
     <dependencies>
         <!--要进行JAX-WS服务开发-->
