@@ -1,13 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.stone</groupId>
-    <artifactId>jax-ws_server_spring</artifactId>
-    <packaging>war</packaging>
+    <artifactId>jax-ws_client_spring</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>jax-ws_server_spring Maven Webapp</name>
+    <name>jax-ws_client_spring</name>
 
     <dependencies>
         <!--CXF WS开发-->
@@ -67,7 +66,7 @@
                 <version>2.2</version>
                 <configuration>
                     <!--指定端口-->
-                    <port>8091</port>
+                    <port>8092</port>
                     <!--请求路径-->
                     <path>/</path>
                 </configuration>

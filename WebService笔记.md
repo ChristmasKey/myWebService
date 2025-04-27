@@ -536,6 +536,11 @@ public class ServerTest {
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
             <version>3.5.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>3.5.7</version>
+        </dependency>
         <!--junit-->
         <dependency>
             <groupId>junit</groupId>
@@ -636,30 +641,628 @@ public class ServerTest {
 applicationContext.xml文件内容如下：
 
 ```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://cxf.apache.org/core
+       http://cxf.apache.org/schemas/core.xsd
+       http://cxf.apache.org/jaxws
+       http://cxf.apache.org/schemas/jaxws.xsd">
+
+    <!--
+    Spring整合CXF发布服务，关键点：
+	1.服务地址、
+	2.服务类、
+	3.服务完整访问地址
+    -->
+    <bean id="helloServiceImpl" class="com.stone.service.impl.HelloServiceImpl"/>
+    <!--服务完整访问地址：http://localhost:8091/ws/hello-->
+    <jaxws:server address="/hello">
+            <jaxws:serviceBean>
+                    <ref bean="helloServiceImpl"/>
+            </jaxws:serviceBean>
+    </jaxws:server>
+
+</beans>
 ```
 
 
 
-#### 4.服务接口&实现
+#### 4.编写服务接口&实现
 
-https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=11
-
-
-
-#### 5.Spring整合ApacheCXF
+<span style="color:blue;">分别创建接口 `com.stone.service.HelloService` 和实现类 `com.stone.service.impl.HelloServiceImpl`，内容同上。</span>
 
 
 
-#### 6.启动服务，发布服务
+#### 5.启动服务，发布服务
+
+<span style="color:blue;">①通过运行Tomcat来启动项目</span>
+
+![启动Tomcat以运行Spring项目](./images/启动Tomcat以运行Spring项目.png)
 
 
 
-#### 7.访问wsdl说明书
+#### 6.访问wsdl说明书
+
+<span style="color:blue;">wsdl说明书访问地址：</span>http://localhost:8091/ws/hello?wsdl
 
 
 
 ### 客户端
 
+#### 1.创建项目
+
+<span style="color:blue;">①在之前的项目工程下创建一个新的Module，作为客户端项目</span>
+
+![创建Spring整合的客户端Module](./images/创建Spring整合的客户端Module.png)
 
 
-### END
+
+#### 2.添加依赖
+
+<span style="color:blue;">添加的依赖和服务端是一样的。</span>
+
+
+
+#### 3.编写服务接口
+
+<span style="color:blue;">创建接口 `com.stone.service.HelloService`，内容同上。</span>
+
+
+
+#### 4.配置CXF客户端
+
+<span style="color:blue;">①新建 `resources` 资源目录及Spring配置文件 applicationContext.xml</span>
+
+![新建resources目录及applicationContext.xml文件](./images/新建resources目录及applicationContext.xml文件.png)
+
+applicationContext.xml文件内容如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://cxf.apache.org/core
+       http://cxf.apache.org/schemas/core.xsd
+       http://cxf.apache.org/jaxws
+       http://cxf.apache.org/schemas/jaxws.xsd">
+
+    <!--
+    Spring整合CXF客户端配置：
+    1.服务地址 http://localhost:8091/ws/hello
+    2.服务接口类型
+    -->
+    <jaxws:client
+            id="helloService"
+            serviceClass="com.stone.service.HelloService"
+            address="http://localhost:8091/ws/hello"/>
+</beans>
+```
+
+
+
+#### 5.编写junit测试类，测试服务调用
+
+```java
+package com.stone;
+
+import com.stone.service.HelloService;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import javax.annotation.Resource;
+
+/**
+ * 调用服务的测试类
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("classpath:applicationContext.xml")
+public class ClientTest {
+
+    // 注入对象
+    @Resource
+    private HelloService helloService;
+
+    @Test
+    public void remote() {
+        // 查看接口的代理对象类型
+        System.out.println(helloService.getClass());
+
+        // 远程访问服务端方法
+        System.out.println(helloService.sayHello("stone"));
+    }
+}
+```
+
+执行测试方法，并在控制台查看结果
+
+![客户端调用服务测试结果2](./images/客户端调用服务测试结果2.png)
+
+
+
+## 四、基于Restful风格的JAX-RS规范
+
+### 服务端
+
+#### 1.创建项目
+
+<span style="color:blue;">①在项目工程下创建一个新的Module，作为服务端项目</span>
+
+![创建基于JAX-RS规范的服务端](./images/创建基于JAX-RS规范的服务端.png)
+
+
+
+#### 2.添加依赖
+
+<span style="color:blue;">①添加Apache CXF相关的依赖</span>
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.stone</groupId>
+    <artifactId>jax-rs_server</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>jax-rs_server</name>
+
+    <dependencies>
+        <!--进行JAX-RS规范的服务开发所需要的依赖-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--内置jetty web服务器-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http-jetty</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--支持客户端进行Restful风格的服务调用-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--支持Json-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-extension-providers</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>1.3.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>utf-8</encoding>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+
+
+#### 3.编写服务接口、服务实现、实体类
+
+<span style="color:blue;">①编写实体类 `com.stone.entity.Car` 和 `com.stone.entity.User`</span>
+
+```java
+package com.stone.entity;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "Car")
+public class Car {
+
+    private Integer id;
+    private String carName;
+    private Double price;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getCarName() {
+        return carName;
+    }
+
+    public void setCarName(String carName) {
+        this.carName = carName;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+    
+    @Override
+    public String toString() {
+        return "Car{" +
+                "id=" + id +
+                ", carName='" + carName + '\'' +
+                ", price=" + price +
+                '}';
+    }
+}
+```
+
+
+
+```java
+package com.stone.entity;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 基于Restful风格的WebService，客户端与服务端之间通讯既可以传递XML数据，也可以传递JSON数据
+ * '@XmlRootElement注解' 指定对象序列化为XML或JSON数据时根节点的名称
+ * xml数据格式：
+ * <user>
+ *     <id>1</id>
+ *     <username>stone</username>
+ *     <city>北京</city>
+ *     <cars>
+ *         <car>
+ *             <name>奔驰</name>
+ *             ...
+ *         </car>
+ *         ...
+ *     </cars>
+ * </user>
+ * json数据格式：
+ * {
+ *     "User": {
+ *        "id": 1,
+ *        "username": "stone",
+ *        "city": "北京",
+ *        "cars": [
+ *            {
+ *                "name": "奔驰",
+ *                ...
+*             }
+*             ...
+*         ]
+ *    }
+ * }
+ */
+@XmlRootElement(name = "User")
+public class User {
+
+    private Integer id;
+    private String username;
+    private String city;
+
+    private List<Car> cars = new ArrayList<>();
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public List<Car> getCars() {
+        return cars;
+    }
+
+    public void setCars(List<Car> cars) {
+        this.cars = cars;
+    }
+    
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", city='" + city + '\'' +
+                ", cars=" + cars +
+                '}';
+    }
+}
+```
+
+
+
+<span style="color:blue;">②编写服务接口 `com.stone.service.IUserService`</span>
+
+```java
+package com.stone.service;
+
+import com.stone.entity.User;
+
+import javax.ws.rs.*;
+import java.util.List;
+
+@Path("/userService") // 访问当前服务接口对应的路径
+@Produces("*/*") // 服务器支持的返回的数据格式类型，*/*表示任意类型
+public interface IUserService {
+
+    @POST // 表示处理的请求的类型
+    @Path("/user") // 访问当前服务接口中的方法对应的路径，拼接后即 .../userService/user
+    @Consumes({"application/json", "application/xml"}) // 服务器支持的请求的数据格式类型
+    void saveUser(User user);
+
+    @PUT
+    @Path("/user")
+    @Consumes({"application/json", "application/xml"})
+    void updateUser(User user);
+
+    @GET
+    @Path("/user")
+    @Produces({"application/json", "application/xml"})
+    List<User> queryUser();
+
+    @GET
+    @Path("/user/{id}")
+    @Consumes({"application/xml"})
+    @Produces({"application/json", "application/xml"})
+    User findUserById(@PathParam("id") Integer id);
+
+    @DELETE
+    @Path("/user/{id}")
+    @Consumes({"application/json", "application/xml"})
+    void deleteUser(@PathParam("id") Integer id);
+}
+```
+
+
+
+<span style="color:blue;">③编写服务实现类 `com.stone.service.impl.UserServiceImpl`</span>
+
+```java
+package com.stone.service.impl;
+
+import com.stone.entity.Car;
+import com.stone.entity.User;
+import com.stone.service.IUserService;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserServiceImpl implements IUserService {
+    @Override
+    public void saveUser(User user) {
+        System.out.println("save user: " + user);
+    }
+
+    @Override
+    public void updateUser(User user) {
+        System.out.println("update user: " + user);
+    }
+
+    @Override
+    public List<User> queryUser() {
+        List<User> users = new ArrayList<>();
+        User user1 = new User();
+        user1.setId(1);
+        user1.setUsername("张三");
+        user1.setCity("北京");
+        List<Car> user1Cars = new ArrayList<>();
+        Car car1 = new Car();
+        car1.setId(1);
+        car1.setCarName("奔驰");
+        car1.setPrice(1000000.00);
+        user1Cars.add(car1);
+        Car car2 = new Car();
+        car2.setId(2);
+        car2.setCarName("宝马");
+        car2.setPrice(2000000.00);
+        user1Cars.add(car2);
+        user1.setCars(user1Cars);
+        users.add(user1);
+        User user2 = new User();
+        user2.setId(2);
+        user2.setUsername("李四");
+        user2.setCity("上海");
+        List<Car> user2Cars = new ArrayList<>();
+        Car car3 = new Car();
+        car3.setId(3);
+        car3.setCarName("奥迪");
+        car3.setPrice(3000000.00);
+        user2Cars.add(car3);
+        Car car4 = new Car();
+        car4.setId(4);
+        car4.setCarName("大众");
+        car4.setPrice(4000000.00);
+        user2Cars.add(car4);
+        user2.setCars(user2Cars);
+        users.add(user2);
+        return users;
+    }
+
+    @Override
+    public User findUserById(Integer id) {
+        if (id == 1) {
+            User user1 = new User();
+            user1.setId(1);
+            user1.setUsername("张三");
+            user1.setCity("北京");
+            List<Car> user1Cars = new ArrayList<>();
+            Car car1 = new Car();
+            car1.setId(1);
+            car1.setCarName("奔驰");
+            car1.setPrice(1000000.00);
+            user1Cars.add(car1);
+            Car car2 = new Car();
+            car2.setId(2);
+            car2.setCarName("宝马");
+            car2.setPrice(2000000.00);
+            user1Cars.add(car2);
+            user1.setCars(user1Cars);
+            return user1;
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteUser(Integer id) {
+        System.out.println("delete user: " + id);
+    }
+}
+```
+
+
+
+#### 4.发布服务
+
+<span style="color:blue;">①编写测试类 `com.stone.ServerTest` 来发布服务</span>
+
+```java
+package com.stone;
+
+import com.stone.service.impl.UserServiceImpl;
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
+import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
+
+public class ServerTest {
+
+    public static void main(String[] args) {
+        // 创建发布服务的工厂
+        JAXRSServerFactoryBean factory = new JAXRSServerFactoryBean();
+        // 配置服务地址
+        factory.setAddress("http://localhost:9001/ws/");
+        // 配置服务类
+        factory.setServiceBean(new UserServiceImpl());
+        // 添加日志输入输出拦截器
+        factory.getInInterceptors().add(new LoggingInInterceptor());
+        factory.getOutInterceptors().add(new LoggingOutInterceptor());
+        // 发布服务
+        factory.create();
+        System.out.println("发布服务成功，端口9001");
+    }
+}
+```
+
+<span style="color:blue;">②新建资源目录及文件log4j.properties（内容同上）</span>
+
+<span style="color:blue;">③启动项目并查看运行结果</span>
+
+![JAX-RS规范的服务端发布服务](./images/JAX-RS规范的服务端发布服务.png)
+
+
+
+### 客户端
+
+1.创建项目
+
+<span style="color:blue;">①在项目工程下创建一个新的Module，作为客户端项目</span>
+
+![创建基于JAX-RS规范的客户端](./images/创建基于JAX-RS规范的客户端.png)
+
+
+
+2.添加依赖
+
+<span style="color:blue;">添加的依赖和服务端是一样的。</span>
+
+
+
+3.编写junit，远程访问服务端
+
+<span style="color:blue;">①将服务端的实体类拷贝过来</span>
+
+<span style="color:blue;">②编写测试类 `com.stone.ClientTest` 来远程调用服务</span>
+
+```java
+package com.stone;
+
+import com.stone.entity.Car;
+import com.stone.entity.User;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.junit.Test;
+
+public class ClientTest {
+
+    @Test
+    public void testService() {
+        // 通过WebClient对象远程调用服务端
+        // 1. 创建WebClient对象
+        WebClient webClient = WebClient.create("http://localhost:9001/ws/userService/user");
+        User user = new User();
+        user.setId(10);
+        user.setUsername("stone");
+        user.setCity("北京");
+        Car car = new Car();
+        car.setId(10);
+        car.setCarName("奔驰");
+        car.setPrice(1000000.00);
+        user.getCars().add(car);
+        // 2. 调用服务端方法
+        webClient.post(user);
+    }
+}
+```
+
+<span style="color:blue;">③执行测试方法，调用服务后，查看服务端控制台输出</span>
+
+https://blog.csdn.net/panghuangang/article/details/134437966
+
+https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=16

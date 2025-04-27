@@ -12,22 +12,12 @@
        http://cxf.apache.org/schemas/jaxws.xsd">
 
     <!--
-    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-    http://cxf.apache.org/jaxrs
-    http://cxf.apache.org/schemas/jaxrs.xsd
+    Spring整合CXF客户端配置：
+    1.服务地址 http://localhost:8091/ws/hello
+    2.服务接口类型
     -->
-    <!--
-    Spring整合CXF发布服务，关键点：
-    服务地址
-    服务类
-    服务完整访问地址
-        http://localhost:8091/ws/hello
-    -->
-    <bean id="helloServiceImpl" class="com.stone.service.impl.HelloServiceImpl"/>
-    <jaxws:server address="/hello">
-        <jaxws:serviceBean>
-            <ref bean="helloServiceImpl"/>
-        </jaxws:serviceBean>
-    </jaxws:server>
-
+    <jaxws:client
+            id="helloService"
+            serviceClass="com.stone.service.HelloService"
+            address="http://localhost:8091/ws/hello"/>
 </beans>
