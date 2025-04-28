@@ -1227,6 +1227,16 @@ public class ServerTest {
 
 3.编写junit，远程访问服务端
 
+<b style="color:red;">WebClient常用函数</b>
+
+```java
+WebClient
+    .create()
+    .type() // 指定请求数据格式 application/xml、text/xml、application/json
+    .accept() // 指定响应数据格式
+    .post() // 指定请求类型：post()/put()/delete()/get()
+```
+
 <span style="color:blue;">①将服务端的实体类拷贝过来</span>
 
 <span style="color:blue;">②编写测试类 `com.stone.ClientTest` 来远程调用服务</span>
@@ -1255,6 +1265,8 @@ public class ClientTest {
         car.setCarName("奔驰");
         car.setPrice(1000000.00);
         user.getCars().add(car);
+        // 指定请求数据格式，默认格式是 text/xml
+        webClient.type(MediaType.APPLICATION_XML);
         // 2. 调用服务端方法
         webClient.post(user);
     }
@@ -1263,6 +1275,230 @@ public class ClientTest {
 
 <span style="color:blue;">③执行测试方法，调用服务后，查看服务端控制台输出</span>
 
-https://blog.csdn.net/panghuangang/article/details/134437966
+![客户端调用服务测试结果3](./images/客户端调用服务测试结果3.png)
 
-https://www.bilibili.com/video/BV15t411S7V1?spm_id_from=333.788.player.switch&vd_source=71b23ebd2cd9db8c137e17cdd381c618&p=16
+<span style="color:blue;">④将请求的数据格式改为 `MediaType.APPLICATION_JSON` 后重新运行，并查看服务端控制台输出</span>
+
+![客户端调用服务测试结果4](./images/客户端调用服务测试结果4.png)
+
+
+
+### Spring整合
+
+#### 服务端
+
+1.创建Web项目
+
+![创建基于JAX-RS规范的Spring整合的服务端](./images/创建基于JAX-RS规范的Spring整合的服务端.png)
+
+
+
+2.添加依赖
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.stone</groupId>
+    <artifactId>jax-rs_server_spring</artifactId>
+    <packaging>war</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>jax-rs_server_spring Maven Webapp</name>
+
+    <dependencies>
+        <!--CXF RS开发-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--CXF 客户端依赖-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <!--支持JSON-->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-extension-providers</artifactId>
+            <version>3.5.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>1.3.7</version>
+        </dependency>
+
+        <!--Spring相关依赖-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.3.12</version>
+        </dependency>
+
+        <!--日志-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <!--junit-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--编译插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>utf-8</encoding>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+            <!--Tomcat插件-->
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <!--指定端口-->
+                    <port>10081</port>
+                    <!--请求路径-->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+
+
+3.配置CXF Servlet
+
+`web.xml`
+
+```xml
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+
+  <!--2.Spring容器配置-->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:applicationContext.xml</param-value>
+  </context-param>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <!--1.cxf servlet配置-->
+  <servlet>
+    <servlet-name>cxfServlet</servlet-name>
+    <servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>cxfServlet</servlet-name>
+    <url-pattern>/ws/*</url-pattern>
+  </servlet-mapping>
+</web-app>
+```
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://cxf.apache.org/core
+       http://cxf.apache.org/schemas/core.xsd
+       http://cxf.apache.org/jaxws
+       http://cxf.apache.org/schemas/jaxws.xsd
+       http://cxf.apache.org/jaxrs
+       http://cxf.apache.org/schemas/jaxrs.xsd">
+    <!--
+    Spring整合CXF发布基于Restful风格的服务，关键点：
+    服务地址
+    服务类
+    服务完整访问地址
+        http://localhost:10081/ws/userService
+    -->
+    <bean id="userServiceImpl" class="com.stone.service.impl.UserServiceImpl"/>
+    <jaxrs:server address="/userService">
+        <jaxrs:serviceBeans>
+            <ref bean="userServiceImpl"/>
+        </jaxrs:serviceBeans>
+    </jaxrs:server>
+</beans>
+```
+
+
+
+4.编写代码
+
+<span style="color:blue;">编写服务接口、服务实现类、实体类代码，内容同上</span>
+
+
+
+5.发布服务
+
+<span style="color:blue;">运行Tomcat服务器，访问服务地址，方式与`jax-ws_server_spring`项目相同</span>
+
+服务地址示例：http://localhost:10081/ws/userService/userService/user
+
+
+
+#### 客户端
+
+1.创建项目
+
+![创建基于JAX-RS规范的Spring整合的客户端](./images/创建基于JAX-RS规范的Spring整合的客户端.png)
+
+
+
+2.添加依赖
+
+<span style="color:blue;">添加的依赖和服务端是一样的。</span>
+
+
+
+3.编写实体类
+
+<span style="color:blue;">实体类代码内容同上</span>
+
+
+
+4.测试服务调用
+
+<span style="color:blue;">测试代码同上</span>
+

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://cxf.apache.org/core
+       http://cxf.apache.org/schemas/core.xsd
+       http://cxf.apache.org/jaxws
+       http://cxf.apache.org/schemas/jaxws.xsd
+       http://cxf.apache.org/jaxrs
+       http://cxf.apache.org/schemas/jaxrs.xsd">
+    <!--
+    Spring整合CXF发布基于Restful风格的服务，关键点：
+    服务地址
+    服务类
+    服务完整访问地址
+        http://localhost:10081/ws/userService
+    -->
+    <bean id="userServiceImpl" class="com.stone.service.impl.UserServiceImpl"/>
+    <jaxrs:server address="/userService">
+        <jaxrs:serviceBeans>
+            <ref bean="userServiceImpl"/>
+        </jaxrs:serviceBeans>
+    </jaxrs:server>
+</beans>

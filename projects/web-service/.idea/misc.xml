@@ -10,6 +10,8 @@
         <option value="$PROJECT_DIR$/jax-ws_client_spring/pom.xml" />
         <option value="$PROJECT_DIR$/jax-rs_server/pom.xml" />
         <option value="$PROJECT_DIR$/jax-rs_client/pom.xml" />
+        <option value="$PROJECT_DIR$/jax-rs_server_spring/pom.xml" />
+        <option value="$PROJECT_DIR$/jax-rs_client_spring/pom.xml" />
       </list>
     </option>
   </component>

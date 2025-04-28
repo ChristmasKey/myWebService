@@ -1,8 +1,0 @@
-0:0:0:0:0:0:0:1 - - [27/Apr/2025:09:29:31 +0800] "GET /ws/hello?wsdl HTTP/1.1" 200 1297 http-bio-8091-exec-1 116
-0:0:0:0:0:0:0:1 - - [27/Apr/2025:09:29:31 +0800] "GET /favicon.ico HTTP/1.1" 404 973 http-bio-8091-exec-3 2
-0:0:0:0:0:0:0:1 - - [27/Apr/2025:11:21:53 +0800] "GET /ws/hello?wsdl HTTP/1.1" 200 1297 http-bio-8091-exec-1 108
-127.0.0.1 - - [27/Apr/2025:11:27:52 +0800] "POST /ws/hello HTTP/1.1" 200 240 http-bio-8091-exec-4 61
-0:0:0:0:0:0:0:1 - - [27/Apr/2025:11:49:00 +0800] "GET /ws/hello?wsdl HTTP/1.1" 200 1297 http-bio-8091-exec-1 97
-0:0:0:0:0:0:0:1 - - [27/Apr/2025:11:50:25 +0800] "GET /ws/hello?wsdl HTTP/1.1" 200 1297 http-bio-8091-exec-1 101
-127.0.0.1 - - [27/Apr/2025:11:50:45 +0800] "POST /ws/hello HTTP/1.1" 200 240 http-bio-8091-exec-4 58
-127.0.0.1 - - [27/Apr/2025:11:51:16 +0800] "POST /ws/hello HTTP/1.1" 200 240 http-bio-8091-exec-6 1

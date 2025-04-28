@@ -13,7 +13,7 @@ public class ClientTest {
     public void testService() {
         // 通过WebClient对象远程调用服务端
         // 1. 创建WebClient对象
-        WebClient webClient = WebClient.create("http://localhost:9001/ws/userService/user");
+        WebClient webClient = WebClient.create("http://localhost:10081/ws/userService/userService/user");
         User user = new User();
         user.setId(10);
         user.setUsername("stone");
@@ -32,7 +32,7 @@ public class ClientTest {
 
     @Test
     public void testGetUserById() {
-        WebClient webClient = WebClient.create("http://localhost:9001/ws/userService/user/1");
+        WebClient webClient = WebClient.create("http://localhost:10081/ws/userService/userService/user/1");
         // webClient.accept(MediaType.APPLICATION_XML);
         User user = webClient.get(User.class);
         System.out.println(user);
